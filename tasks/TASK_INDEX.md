@@ -11,10 +11,10 @@
 - [TASK-003](done/TASK-003.md): Implement graph shortest-path metrics
 - [TASK-004](done/TASK-004.md): Implement deterministic tie-breaking
 - [TASK-005](done/TASK-005.md): Implement deterministic k-NN classifier
+- [TASK-006](done/TASK-006.md): Implement stability indicators
 
 ## Backlog
 
-- [TASK-006](backlog/TASK-006.md): Implement stability indicators
 - [TASK-007](backlog/TASK-007.md): Search minimal 1-NN witnesses
 - [TASK-008](backlog/TASK-008.md): Search tie-free witnesses
 - [TASK-009](backlog/TASK-009.md): Generate minimality certificate
