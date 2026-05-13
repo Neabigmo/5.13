@@ -1,0 +1,6 @@
+{
+  "task_id": "TASK-001",
+  "status": "blocked",
+  "reason": "ANTHROPIC_API_KEY is not set in the process environment.",
+  "report_path": "tasks\\reports\\TASK-001.report.json"
+}
