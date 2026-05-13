@@ -10,7 +10,7 @@ Implement delete-one, replace-one, LOO, and uniform brute-force stability helper
 
 ## Context
 
-This task must not start until Codex freezes `docs/project-control/02_DEFINITIONS_SPEC.md`.
+This task must not start until Codex freezes docs/project-control/02_DEFINITIONS_SPEC.md.
 
 ## Required work
 
@@ -26,10 +26,9 @@ This task must not start until Codex freezes `docs/project-control/02_DEFINITION
 ## Validation
 
 ```powershell
-conda run -p E:\anaconda3\envs\pytorch-clean python -m pytest
+conda run -p E:\\anaconda3\\envs\\pytorch-clean python -m pytest
 ```
 
 ## Report
 
 Return structured report.
-
