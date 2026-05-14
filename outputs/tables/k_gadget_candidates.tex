@@ -1,14 +1,16 @@
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{lllllll}
+\begin{tabularx}{\linewidth}{@{}YYYYYYY@{}}
 \toprule
 k & vertices & sample size & max LOO & max replace-one & status & script \\
 \midrule
-3 & 2 & 3 & 0 & 1 & computational candidate only & experiments/search\_k\_gadgets.py \\
-5 & 2 & 5 & 0 & 1 & computational candidate only & experiments/search\_k\_gadgets.py \\
-7 & 2 & 7 & 0 & 1 & computational candidate only & experiments/search\_k\_gadgets.py \\
+3 & 2 & 3 & 0 & 1 & computational candidate only & search\_k\_gadgets.py \\
+5 & 2 & 5 & 0 & 1 & computational candidate only & search\_k\_gadgets.py \\
+7 & 2 & 7 & 0 & 1 & computational candidate only & search\_k\_gadgets.py \\
 \bottomrule
-\end{tabular}
-\caption*{\footnotesize Odd-k rows summarize one representative candidate per k and are not theorem statements.}
+\end{tabularx}
+\caption{Representative odd-k gadget candidates returned by the finite search pipeline.}
+\label{tab:k-gadget-candidates}
+{\footnotesize Odd-k rows summarize one representative candidate per k and are not theorem statements.\par}
 \end{table}

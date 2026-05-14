@@ -20,6 +20,12 @@ The order of the tuple is semantically relevant only for deterministic tie-break
 
 Any theorem or experiment that excludes duplicates or conflicts must state this explicitly.
 
+\paragraph{Definition hygiene.}
+The distinctions above are not bookkeeping trivia. Ordered duplicates,
+conflicting labels, and deterministic tie-breaking are exactly the places where
+local instability can hide. Several later examples collapse or become
+ambiguous if these conventions are left implicit.
+
 \begin{definition}[Finite Metric Space]
 A finite metric space is a finite set $X$ together with a distance function
 \[
@@ -156,3 +162,5 @@ For LOO, the uniform stability supremum is over ordered tuples $S$ and indices $
 \subsection{Consistency Note}
 
 The consistency notion used in paper-level discussion is classical distributional consistency for $k$-NN classification. It is not a finite-sequence surrogate notion. Any finite-metric experiment provides evidence about worst-case stability behavior; it does not by itself constitute a consistency statement.
+
+\input{outputs/tables/stability_notions.tex}

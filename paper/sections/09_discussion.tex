@@ -1,2 +1,57 @@
-% Draft reserved for discussion.
+\section{Discussion}
+\label{sec:discussion}
 
+The central payoff of this draft is conceptual clarity with enough concrete
+mathematics behind it to be checkable. The paper does not merely rename
+familiar notions. It shows that once perturbation type, evaluation point, and
+deterministic tie-breaking are all fixed explicitly, one gets both a clean
+uniform perturbation calculus and a sharp pointwise separation phenomenon for
+nearest neighbors.
+
+At the current stage, the strongest established claims are the following.
+Replace-one admits a delete-plus-add upper bound at the uniform loss level
+(\Cref{prop:replace-delete-add}). Deterministic $k$-NN prediction changes are
+exactly margin-crossing events inside the ordered top-$k$ neighborhood
+(\Cref{prop:margin-crossing}). And deterministic $1$-NN already exhibits a
+finite metric separation between pointwise LOO stability and pointwise
+replace-one stability (\Cref{prop:two-point-separation}).
+
+The weaker parts of the story are equally important to state honestly. The
+minimality of the current $1$-NN witness beyond the explicit construction is
+supported by computational certificates, not by a full impossibility proof. The
+odd-$k$ extension is presently a conjectural lifting pattern backed by bounded
+search evidence for $k=3,5,7$. Those are meaningful research assets, but they
+should not be promoted beyond their evidentiary level.
+
+The draft also has several limitations that shape the next phase.
+\begin{enumerate}[leftmargin=*,label=(\arabic*)]
+    \item The current theorem-level separation is for deterministic finite
+    $1$-NN; the general odd-$k$ story still lacks a formal proof.
+    \item The ambient spaces are finite metric spaces, often realized as graph
+    shortest-path metrics. This gives crisp witnesses but does not yet address
+    broader geometric classes.
+    \item The paper studies binary 0--1 loss. Real-valued scores, multiclass
+    labels, and regression analogues remain open.
+    \item The discussion is worst-case and fixed-sample. It is intentionally not
+    a statistical rate paper.
+    \item The computational certificates are reproducible and well documented,
+    but they are still certificates rather than formal proofs.
+\end{enumerate}
+
+These limitations point directly to the most natural follow-up problems.
+\begin{enumerate}[leftmargin=*,label=(\arabic*)]
+    \item Prove or refute \Cref{conj:odd-k-lifting}.
+    \item Strengthen the current certificate pipeline into a formal minimality
+    argument or an automated proof assistant artifact.
+    \item Characterize which metric-space constraints eliminate the separation.
+    \item Extend the perturbation calculus to other local rules, such as
+    weighted neighbors or radius-based classifiers.
+    \item Connect the finite worst-case indicators here to distributional
+    stability notions without collapsing the distinctions this paper isolates.
+\end{enumerate}
+
+If there is a broader moral, it is this: for local learning rules, the geometry
+of the neighborhood and the semantics of the perturbation must be specified
+together. Once that is done, some relationships become cleaner than expected,
+and some purportedly similar notions separate much sooner than intuition
+suggests.

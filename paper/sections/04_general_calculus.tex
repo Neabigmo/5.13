@@ -1,2 +1,68 @@
-% Draft reserved for Codex proof work.
+\section{Uniform Stability Calculus}
+\label{sec:uniform-calculus}
 
+At the level of perturbation operations, replace-one is the composite move
+obtained by deleting an occurrence and then inserting a new labeled point.
+That observation is almost tautological at the sample level, but it is worth
+writing down explicitly because it yields the correct direction of implication
+for worst-case stability control.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.78\linewidth]{outputs/figures/uniform_calculus_diagram.pdf}
+    \caption{Operation-level factorization of a replace-one perturbation into a
+    delete-one step followed by an add-one step. The proof of
+    \Cref{prop:replace-delete-add} is just the triangle inequality on the
+    corresponding binary losses.}
+    \label{fig:uniform-calculus}
+\end{figure}
+
+\begin{proposition}[Uniform replace-one through delete-plus-add]
+\label{prop:replace-delete-add}
+Fix a deterministic learning rule $A$ that maps ordered samples to predictors
+and a bounded loss $\loss \in [0,1]$. Suppose that for every sample $S$, every
+index $i$, every evaluation pair $(x,y)$, and every admissible appended labeled
+point $z$,
+\[
+\left|\loss(A(S),(x,y))-\loss(A(S^{-i}),(x,y))\right| \le \beta_{\del}
+\]
+and
+\[
+\left|\loss(A(T),(x,y))-\loss(A(T\oplus z),(x,y))\right| \le \beta_{\add}
+\]
+uniformly over all intermediate samples $T$. Then every replace-one
+perturbation satisfies
+\[
+\left|\loss(A(S),(x,y))-\loss(A(S^{i\leftarrow z}),(x,y))\right|
+\le \beta_{\del}+\beta_{\add}.
+\]
+\end{proposition}
+
+\begin{proof}
+For fixed $S,i,z,(x,y)$, let $T=S^{-i}$. By construction,
+$S^{i\leftarrow z}=T\oplus z$ up to the repository's fixed convention that the
+new occurrence is inserted after the deletion. Therefore
+\begin{align*}
+\left|\loss(A(S),(x,y))-\loss(A(S^{i\leftarrow z}),(x,y))\right|
+&\le
+\left|\loss(A(S),(x,y))-\loss(A(T),(x,y))\right| \\
+&\quad +
+\left|\loss(A(T),(x,y))-\loss(A(T\oplus z),(x,y))\right|
+\end{align*}
+by the triangle inequality, and the claimed bound follows from the two uniform
+assumptions.
+\end{proof}
+
+\Cref{prop:replace-delete-add} is deliberately abstract. It is not specific to
+$k$-NN, and it does not yet tell us whether the bound is informative for a
+particular local learner. Its role is to freeze the algebra of perturbation
+types before we zoom in on the exact combinatorics of deterministic nearest
+neighbors.
+
+The proposition also clarifies what it does \emph{not} say. A pointwise LOO
+indicator cannot simply be dropped into the role of delete-one control above,
+because LOO changes the evaluation point along with the sample. Similarly, a
+fresh-test or expected-loss stability statement from the classical literature
+does not automatically transfer to the worst-case fixed-query indicators used
+in the present paper. The whole point of the calculus is to prevent these
+category mistakes.

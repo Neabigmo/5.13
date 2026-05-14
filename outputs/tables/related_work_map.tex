@@ -1,7 +1,7 @@
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{llllll}
+\begin{tabularx}{\linewidth}{@{}YYYYYY@{}}
 \toprule
 Work & Perturbation & Evaluation point & Guarantee type & k-NN? & Relation to this paper \\
 \midrule
@@ -11,9 +11,9 @@ Cover, *Estimation by the Nearest Neighbor Rule* & not a perturbation paper & pr
 Stone, *Consistent Nonparametric Regression* & not a perturbation paper & population risk & distributional / asymptotic & no & key citation for "finite instability does not contradict consistency" \\
 Rogers and Wagner, *A Finite Sample Distribution-Free Performance Bound for Local Discrimination Rules* & delete-one style deleted estimate & deleted observation / cross-validation style & mostly distribution-free finite-sample & no & nearest known classical bridge between local rules and delete-one evaluation \\
 Devroye and Wagner, *Distribution-Free Inequalities for the Deleted and Holdout Error Estimates* & delete-one / holdout & deleted point or held-out point & distribution-free finite-sample & no & central precedent for leave-one-out style evaluation, but not our worst-case perturbation calculus \\
-Devroye and Wagner, *The Strong Uniform Consistency of Nearest Neighbor Density Estimates* & not a stability paper & population estimation & asymptotic & yes & background only \\
-Kearns and Ron, *Algorithmic Stability and Sanity-Check Bounds for Leave-One-Out Cross-Validation* & leave-one-out and general stability notions & deleted observation / CV & statistical / generalization-oriented & no & strong precedent that LOO and stability interact, but not a k-NN finite-metric separation paper \\
 \bottomrule
-\end{tabular}
-\caption*{\footnotesize This map is a condensed companion to docs/literature/LIT\_TABLE.md.}
+\end{tabularx}
+\caption{Condensed map of representative references relative to the present deterministic finite-metric perspective.}
+\label{tab:related-work-map}
+{\footnotesize This map is a condensed companion to docs/literature/LIT\_TABLE.md.\par}
 \end{table}

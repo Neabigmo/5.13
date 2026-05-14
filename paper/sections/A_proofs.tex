@@ -1,15 +1,30 @@
 \section{Proof Sketches and Deferred Proofs}
 
-Proof to be inserted after Codex audit.
+This appendix records the short proofs whose main ideas already appear in the
+body, together with the claim-strength boundaries that matter for review.
 
 \subsection{Uniform perturbation calculus}
 
-Proof to be inserted after Codex audit.
+The proof of \Cref{prop:replace-delete-add} is intentionally elementary. Its
+value is not technical depth but category control: replace-one is an operation
+composition, whereas LOO is an operation-plus-evaluation convention. The
+triangle-inequality argument therefore applies directly to delete/add versus
+replace, but not to LOO without additional translation lemmas.
 
-\subsection{Deterministic k-NN perturbation criterion}
+\subsection[Deterministic k-NN perturbation criterion]{Deterministic $k$-NN perturbation criterion}
 
-Proof to be inserted after Codex audit.
+The proof of \Cref{prop:margin-crossing} reduces the classifier to a signed vote
+threshold. All geometric complexity is compressed into the ordered top-$k$
+neighbor list $N_k(S,x)$. Once that list is fixed, the classifier is just the
+sign of $M_k(S,x)$ with the non-positive side resolved toward label $0$. The
+only way a perturbation changes the prediction is therefore to move the signed
+margin across zero.
 
-\subsection{Two-point 1-NN witness}
+\subsection[Two-point 1-NN witness]{Two-point $1$-NN witness}
 
-Proof to be inserted after Codex audit.
+The witness of \Cref{prop:two-point-separation} is fully explicit and
+hand-checkable. No exhaustive search is needed for the existence claim itself.
+What the repository's search artifacts contribute is different: they show that
+within the enumerated search spaces, no one-vertex witness appears and the
+two-vertex pattern is the first observed regime where the separation occurs.
+That latter statement remains certificate-level evidence, not a proof.

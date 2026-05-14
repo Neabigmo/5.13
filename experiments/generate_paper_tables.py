@@ -34,22 +34,33 @@ def tex_escape(value: object) -> str:
     return text
 
 
-def write_table(path: Path, columns: list[str], rows: list[list[object]], note: str | None = None) -> None:
+def write_table(
+    path: Path,
+    columns: list[str],
+    rows: list[list[object]],
+    note: str | None = None,
+    caption: str | None = None,
+    label: str | None = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         r"\begin{table}[t]",
         r"\centering",
         r"\small",
-        r"\begin{tabular}{%s}" % ("l" * len(columns)),
+        r"\begin{tabularx}{\linewidth}{@{}" + ("Y" * len(columns)) + r"@{}}",
         r"\toprule",
         " & ".join(tex_escape(col) for col in columns) + r" \\",
         r"\midrule",
     ]
     for row in rows:
         lines.append(" & ".join(tex_escape(cell) for cell in row) + r" \\")
-    lines.extend([r"\bottomrule", r"\end{tabular}"])
+    lines.extend([r"\bottomrule", r"\end{tabularx}"])
+    if caption:
+        lines.append(r"\caption{" + caption + "}")
+    if label:
+        lines.append(r"\label{" + label + "}")
     if note:
-        lines.append(r"\caption*{\footnotesize " + tex_escape(note) + "}")
+        lines.append(r"{\footnotesize " + tex_escape(note) + r"\par}")
     lines.append(r"\end{table}")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -57,7 +68,7 @@ def write_table(path: Path, columns: list[str], rows: list[list[object]], note: 
 def build_stability_notions_table(output_dir: Path) -> None:
     columns = ["Notion", "Perturbation", "Evaluated at", "Supremum over", "Distribution?", "Used for"]
     rows = [
-        ["delete-one", "remove one occurrence", "arbitrary query-label pair", "indices and queries", "no", "uniform/pointwise perturbation analysis"],
+        ["delete-one", "remove one occurrence", "arbitrary query-label pair", "indices and queries", "no", "uniform and pointwise perturbation analysis"],
         ["replace-one", "swap one occurrence for adversarial labeled point", "arbitrary query-label pair", "indices, replacements, queries", "no", "strong local perturbation control"],
         ["add-one", "append one occurrence", "arbitrary query-label pair", "added points and queries", "no", "decomposition of replace-one"],
         ["LOO", "delete one occurrence", "that deleted occurrence", "delete index only", "no", "cross-validation style local stability"],
@@ -67,6 +78,8 @@ def build_stability_notions_table(output_dir: Path) -> None:
         output_dir / "stability_notions.tex",
         columns,
         rows,
+        caption="Comparison of perturbation notions used in this paper and in the surrounding stability literature.",
+        label="tab:stability-notions",
         note="Computational witness sections use fixed-sample worst-case indicators, not distributional expected stability.",
     )
 
@@ -94,6 +107,8 @@ def build_minimal_witnesses_table(output_dir: Path, tie_free_payload: dict) -> N
         output_dir / "minimal_witnesses.tex",
         ["Vertices", "Edges", "Sample", "k", "max LOO", "max replace-one", "Status"],
         rows,
+        caption="Minimal explicit witness patterns for the 1-NN separation story under deterministic tie-breaking.",
+        label="tab:minimal-witnesses",
         note="The witness row is hand-checkable, while minimality over the search space remains computational evidence.",
     )
 
@@ -113,13 +128,15 @@ def build_k_gadget_candidates_table(output_dir: Path, gadget_payload: dict) -> N
                 candidate["loo_max"],
                 candidate["replace_max"],
                 "computational candidate only",
-                "experiments/search_k_gadgets.py",
+                "search_k_gadgets.py",
             ]
         )
     write_table(
         output_dir / "k_gadget_candidates.tex",
         ["k", "vertices", "sample size", "max LOO", "max replace-one", "status", "script"],
         rows,
+        caption="Representative odd-k gadget candidates returned by the finite search pipeline.",
+        label="tab:k-gadget-candidates",
         note="Odd-k rows summarize one representative candidate per k and are not theorem statements.",
     )
 
@@ -145,6 +162,8 @@ def build_certificate_summary_table(output_dir: Path, certificate_payload: dict)
         output_dir / "certificate_summary.tex",
         ["Artifact", "Observed min vertices", "No-solution range", "Hash", "Status"],
         rows,
+        caption="Summary of the current computational minimality certificates for the 1-NN witness search.",
+        label="tab:certificate-summary",
         note="Certificate tables summarize finite search outputs and do not upgrade them to proof.",
     )
 
@@ -152,16 +171,18 @@ def build_certificate_summary_table(output_dir: Path, certificate_payload: dict)
 def build_reproducibility_summary_table(output_dir: Path, reproducibility_md: str) -> None:
     commands = re.findall(r"```powershell\n(.*?)\n```", reproducibility_md, flags=re.S)
     rows = [
-        ["tests", "python -m pytest", commands[0].strip(), "see REPRODUCIBILITY.md", "passed"],
-        ["minimal 1-NN search", "search_minimal_1nn.py", commands[1].strip(), "5B7A8925688A...", "generated"],
-        ["tie-free search", "search_tie_free.py", commands[2].strip(), "A52AA8A77A9A...", "generated"],
-        ["minimality certificate", "certify_minimality.py", commands[3].strip(), "92F85B16F79D...", "generated"],
-        ["k-gadget search", "search_k_gadgets.py", commands[4].strip(), "B3204D99A02A...", "generated"],
+        ["tests", "pytest", "python -m pytest", "see REPRODUCIBILITY.md", "passed"],
+        ["minimal 1-NN search", "search_minimal_1nn.py", "search_minimal_1nn.py --max_vertices 4", "5B7A8925688A...", "generated"],
+        ["tie-free search", "search_tie_free.py", "search_tie_free.py --input ... --output ...", "A52AA8A77A9A...", "generated"],
+        ["minimality certificate", "certify_minimality.py", "certify_minimality.py", "92F85B16F79D...", "generated"],
+        ["k-gadget search", "search_k_gadgets.py", "search_k_gadgets.py --max_candidates_per_k ...", "B3204D99A02A...", "generated"],
     ]
     write_table(
         output_dir / "reproducibility_summary.tex",
         ["Artifact", "Script", "Command", "Output hash", "Status"],
         rows,
+        caption="Compact reproducibility map for the current code and artifact pipeline.",
+        label="tab:reproducibility-summary",
         note="Full commands and environment details are listed in outputs/REPRODUCIBILITY.md.",
     )
 
@@ -169,13 +190,15 @@ def build_reproducibility_summary_table(output_dir: Path, reproducibility_md: st
 def build_related_work_map(output_dir: Path, lit_table_md: str) -> None:
     lines = [line for line in lit_table_md.splitlines() if line.startswith("|")][2:]
     rows = []
-    for line in lines[:8]:
+    for line in lines[:6]:
         parts = [part.strip() for part in line.strip("|").split("|")]
         rows.append([parts[0], parts[3], parts[4], parts[5], "yes" if "NN" in parts[0] or "Neighbor" in parts[0] else "no", parts[6]])
     write_table(
         output_dir / "related_work_map.tex",
         ["Work", "Perturbation", "Evaluation point", "Guarantee type", "k-NN?", "Relation to this paper"],
         rows,
+        caption="Condensed map of representative references relative to the present deterministic finite-metric perspective.",
+        label="tab:related-work-map",
         note="This map is a condensed companion to docs/literature/LIT_TABLE.md.",
     )
 

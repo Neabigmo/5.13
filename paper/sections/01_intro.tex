@@ -1,2 +1,102 @@
-% Draft reserved for later paper task.
+\section{Introduction}
+\label{sec:introduction}
 
+Algorithmic stability is often introduced through a single intuitive gesture:
+change one training example and ask whether the learner changes much. For
+global smooth learners this slogan is usually harmless. For local rules such as
+deterministic $k$-nearest neighbors, it is already underspecified. One can
+delete an occurrence, append a new occurrence, replace an occurrence by an
+adversarially chosen labeled point, or delete an occurrence and then evaluate
+the modified classifier exactly at that removed occurrence, as in leave-one-out
+(LOO) validation. These operations are related, but they are not identical. A
+substantial amount of avoidable confusion enters the discussion when they are
+treated as interchangeable.
+
+This paper is about making those distinctions explicit in the smallest setting
+where they become mathematically sharp: deterministic $k$-NN on finite metric
+spaces with ordered samples, duplicate occurrences allowed, conflicting labels
+allowed, and tie-breaking frozen once and for all. The finite setting strips
+away distributional averaging and exposes the local combinatorics directly. In
+that regime we can ask a very concrete question: when does a single
+perturbation change the prediction, and what kinds of perturbations are
+provably stronger than others?
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.92\linewidth]{outputs/figures/stability_notions_diagram.pdf}
+    \caption{The paper separates perturbation operations by what changes in the
+    sample and where the post-perturbation classifier is evaluated. This
+    distinction is the organizing device for the rest of the draft.}
+    \label{fig:stability-notions}
+\end{figure}
+
+\Cref{fig:stability-notions} previews the perspective. Delete-one,
+add-one, replace-one, and LOO belong to the same family, but they move along
+different axes. Replace-one is strongest at the operation level because it can
+be factored into a deletion followed by an insertion; LOO is special because it
+evaluates at the removed occurrence itself. Once these axes are disentangled,
+two kinds of results emerge. First, there is a clean \emph{uniform calculus}:
+replace-one control can be upper bounded by delete-one plus add-one control.
+Second, there are unexpectedly sharp \emph{pointwise separations}: a sample can
+be perfectly LOO-stable while still being highly unstable under replace-one.
+
+The smallest explicit witness already appears for deterministic $1$-NN on a
+two-vertex graph metric. In that example, deleting either occurrence does not
+change the loss at the deleted occurrence, but replacing one occurrence by an
+adversarially labeled duplicate flips the prediction at a chosen query point.
+The witness is tiny enough to verify by hand, yet it already captures the main
+moral of the paper: LOO and replace-one are not merely different formalizations
+of the same local phenomenon.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.82\linewidth]{outputs/figures/minimal_1nn_witness_before_after.pdf}
+    \caption{The minimal hand-checkable $1$-NN witness. The unperturbed sample
+    is LOO-stable at both occurrences, while a replace-one perturbation changes
+    the prediction at a selected query. Minimality of the two-vertex pattern is
+    currently supported by computational certificates rather than by a formal
+    impossibility proof.}
+    \label{fig:minimal-witness}
+\end{figure}
+
+Our contributions are therefore best read as a controlled bundle rather than a
+single theorem.
+\begin{enumerate}[leftmargin=*,label=(\arabic*)]
+    \item We formalize the perturbation vocabulary for deterministic finite
+    $k$-NN, with explicit conventions for ordered samples, duplicate
+    occurrences, conflicting labels, and tie-breaking.
+    \item We prove a uniform perturbation relation showing that replace-one can
+    be decomposed into delete-one plus add-one at the loss level.
+    \item We derive an exact signed-margin criterion for when a deterministic
+    $k$-NN prediction changes after a perturbation. This makes the instability
+    mechanism transparent: the label vote inside the ordered top-$k$ neighborhood
+    must cross zero.
+    \item We give an explicit finite metric separation for deterministic $1$-NN:
+    pointwise LOO stability does not control pointwise replace-one stability.
+    The witness itself is theorem-level; the current minimality claim remains a
+    computational certificate.
+    \item We provide reproducible odd-$k$ gadget candidates and publication
+    assets that keep theorem statements, computational certificates, and
+    conjectural lifting patterns cleanly separated.
+\end{enumerate}
+
+The paper is intentionally modest about what it does \emph{not} establish. We
+do not claim a new generalization bound. We do not claim that the current
+odd-$k$ search outputs constitute a theorem. We do not claim that finite
+worst-case instability contradicts classical consistency results for nearest
+neighbors. Instead, we offer a definition-level and mechanism-level account of
+single-perturbation behavior that can live compatibly alongside the classical
+distributional theory.
+
+The reader's map is simple. \Cref{sec:related-work} positions the paper
+relative to classical algorithmic stability, deleted-estimate, and conformal
+prediction literatures. \Cref{sec:definitions} fixes the deterministic finite
+setting and notation. \Cref{sec:uniform-calculus} proves the uniform
+delete/add/replace relation. \Cref{sec:knn-criterion} gives the exact
+deterministic $k$-NN perturbation criterion and the corresponding visual
+microscope for instability. \Cref{sec:finite-separation} states the minimal
+$1$-NN separation result and its certificate boundary. \Cref{sec:k-extension}
+summarizes what the current odd-$k$ gadget search does and does not justify.
+\Cref{sec:consistency} explains why these results are compatible with
+consistency and prediction-calibration perspectives, and \Cref{sec:discussion}
+collects the main limitations and next steps.
