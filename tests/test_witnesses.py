@@ -3,6 +3,11 @@ from pathlib import Path
 from experiments.certify_minimality import build_certificate
 from experiments.generate_witness_figures import layout_by_degree
 from experiments.search_minimal_1nn import build_metadata, search_witnesses
+from experiments.search_k_gadgets import (
+    build_metadata as build_k_gadget_metadata,
+    sample_lengths_for_k,
+    search_k_gadgets,
+)
 from knn_stability.enumeration import (
     enumerate_binary_labelings,
     enumerate_connected_graphs,
@@ -273,3 +278,35 @@ def test_witness_figure_layout_by_degree() -> None:
     assert center == 0
     assert positions[0] == (0, 0)
     assert set(positions) == {0, 1, 2}
+
+
+def test_k_gadget_sample_lengths_for_k() -> None:
+    assert sample_lengths_for_k(5, ["equal_k", "k_plus_one", "equal_k"]) == [5, 6]
+
+
+def test_search_k_gadgets_finds_small_odd_k_candidates() -> None:
+    candidates, stats = search_k_gadgets(
+        k_values=[3, 5, 7],
+        min_vertices=2,
+        max_vertices=2,
+        length_modes=["equal_k"],
+        max_candidates_per_k=1,
+    )
+    metadata = build_k_gadget_metadata(
+        k_values=[3, 5, 7],
+        min_vertices=2,
+        max_vertices=2,
+        length_modes=["equal_k"],
+        max_candidates_per_k=1,
+        candidates=candidates,
+        stats=stats,
+    )
+
+    assert metadata["not_a_proof"] is True
+    assert metadata["search_space"]["duplicates_allowed"] is True
+    assert metadata["search_space"]["conflicting_labels_allowed"] is True
+    assert metadata["search_space"]["vertex_range"] == "2 to 2"
+    assert {candidate["k"] for candidate in candidates} == {3, 5, 7}
+    assert all(candidate["num_vertices"] == 2 for candidate in candidates)
+    assert all(candidate["status"] == "candidate_pattern_not_a_proof" for candidate in candidates)
+    assert all(candidate["loo_max"] != candidate["replace_max"] for candidate in candidates)

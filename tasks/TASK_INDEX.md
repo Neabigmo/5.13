@@ -17,10 +17,10 @@
 - [TASK-009](done/TASK-009.md): Generate minimality certificate
 - [TASK-010](done/TASK-010.md): Draft LaTeX definitions section
 - [TASK-011](done/TASK-011.md): Generate figures for witnesses
+- [TASK-012](done/TASK-012.md): Implement k-gadget search
 
 ## Backlog
 
-- [TASK-012](backlog/TASK-012.md): Implement k-gadget search
 - [TASK-013](backlog/TASK-013.md): Prepare related-work table skeleton
 
 ## Codex-Owned Tasks
