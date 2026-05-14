@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lllll}
+\toprule
+Artifact & Script & Command & Output hash & Status \\
+\midrule
+tests & python -m pytest & E:\textbackslash\{\}anaconda3\textbackslash\{\}envs\textbackslash\{\}pytorch-clean\textbackslash\{\}python.exe -m pytest & see REPRODUCIBILITY.md & passed \\
+minimal 1-NN search & search\_minimal\_1nn.py & E:\textbackslash\{\}anaconda3\textbackslash\{\}envs\textbackslash\{\}pytorch-clean\textbackslash\{\}python.exe experiments\textbackslash\{\}search\_minimal\_1nn.py --max\_vertices 4 & 5B7A8925688A... & generated \\
+tie-free search & search\_tie\_free.py & E:\textbackslash\{\}anaconda3\textbackslash\{\}envs\textbackslash\{\}pytorch-clean\textbackslash\{\}python.exe experiments\textbackslash\{\}search\_tie\_free.py --input outputs\textbackslash\{\}witnesses\textbackslash\{\}1nn\_separation\_witnesses.json --output outputs\textbackslash\{\}witnesses\textbackslash\{\}1nn\_tie\_free\_witnesses.json & A52AA8A77A9A... & generated \\
+minimality certificate & certify\_minimality.py & E:\textbackslash\{\}anaconda3\textbackslash\{\}envs\textbackslash\{\}pytorch-clean\textbackslash\{\}python.exe experiments\textbackslash\{\}certify\_minimality.py --separation outputs\textbackslash\{\}witnesses\textbackslash\{\}1nn\_separation\_witnesses.json --tie\_free outputs\textbackslash\{\}witnesses\textbackslash\{\}1nn\_tie\_free\_witnesses.json --json\_output outputs\textbackslash\{\}witnesses\textbackslash\{\}1nn\_minimality\_certificate.json --markdown\_output outputs\textbackslash\{\}tables\textbackslash\{\}1nn\_minimality\_certificate.md & 92F85B16F79D... & generated \\
+k-gadget search & search\_k\_gadgets.py & E:\textbackslash\{\}anaconda3\textbackslash\{\}envs\textbackslash\{\}pytorch-clean\textbackslash\{\}python.exe experiments\textbackslash\{\}search\_k\_gadgets.py --k\_values 3 5 7 --min\_vertices 2 --max\_vertices 2 --length\_modes equal\_k --max\_candidates\_per\_k 3 & B3204D99A02A... & generated \\
+\bottomrule
+\end{tabular}
+\caption*{\footnotesize Full commands and environment details are listed in outputs/REPRODUCIBILITY.md.}
+\end{table}

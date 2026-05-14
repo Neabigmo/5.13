@@ -1,10 +1,47 @@
 \documentclass{article}
-\usepackage{amsmath, amsthm, amssymb}
 
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amsthm, amssymb, mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[capitalize,nameinlink]{cleveref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[toc,page]{appendix}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={A Stability Calculus for Local Learning Rules}
+}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
 \theoremstyle{remark}
-\newtheorem{note}{Note}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{note}[theorem]{Note}
+
+\newcommand{\del}{\mathrm{del}}
+\newcommand{\rep}{\mathrm{rep}}
+\newcommand{\loo}{\mathrm{loo}}
+\newcommand{\add}{\mathrm{add}}
+\newcommand{\NN}{\mathrm{NN}}
+\newcommand{\loss}{\ell}
+\newcommand{\ind}[1]{\mathbf{1}\!\left\{#1\right\}}
+\newcommand{\metric}{\mathcal{X}}
+\newcommand{\sample}{\mathcal{S}}
 
 \title{A Stability Calculus for Local Learning Rules}
 \author{}
@@ -12,6 +49,7 @@
 
 \begin{document}
 \maketitle
+\input{paper/sections/00_abstract}
 
 \input{paper/sections/01_intro}
 \input{paper/sections/02_related_work}
@@ -22,6 +60,12 @@
 \input{paper/sections/07_k_extension}
 \input{paper/sections/08_consistency_and_prediction}
 \input{paper/sections/09_discussion}
+
+\appendix
+\input{paper/sections/A_proofs}
+\input{paper/sections/B_enumeration_protocol}
+\input{paper/sections/C_additional_figures}
+\input{paper/sections/D_bib_notes}
 
 \bibliographystyle{plain}
 \bibliography{paper/refs}

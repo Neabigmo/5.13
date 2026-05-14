@@ -2,13 +2,7 @@
 
 ## Active
 
-- [TASK-014](active/TASK-014.md): Build publication-quality witness figures
-- [TASK-015](active/TASK-015.md): Generate LaTeX tables from experiment outputs
-- [TASK-016](active/TASK-016.md): Upgrade LaTeX infrastructure
-- [TASK-017](active/TASK-017.md): Reproduce all current experiments
-- [TASK-018](active/TASK-018.md): Create appendix scaffolding
-- [TASK-019](active/TASK-019.md): BibTeX formatting pass
-- [TASK-020](active/TASK-020.md): Improve README and reproduction instructions
+- None.
 
 ## Done
 
@@ -25,6 +19,13 @@
 - [TASK-011](done/TASK-011.md): Generate figures for witnesses
 - [TASK-012](done/TASK-012.md): Implement k-gadget search
 - [TASK-013](done/TASK-013.md): Prepare related-work table skeleton
+- [TASK-014](done/TASK-014.md): Build publication-quality witness figures
+- [TASK-015](done/TASK-015.md): Generate LaTeX tables from experiment outputs
+- [TASK-016](done/TASK-016.md): Upgrade LaTeX infrastructure
+- [TASK-017](done/TASK-017.md): Reproduce all current experiments
+- [TASK-018](done/TASK-018.md): Create appendix scaffolding
+- [TASK-019](done/TASK-019.md): BibTeX formatting pass
+- [TASK-020](done/TASK-020.md): Improve README and reproduction instructions
 
 ## Backlog
 
