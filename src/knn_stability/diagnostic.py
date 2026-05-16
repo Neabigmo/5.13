@@ -20,7 +20,7 @@ from knn_stability.metrics import FiniteMetricSpace
 from knn_stability.stability import (
     pointwise_loo_stability,
     pointwise_delete_one_stability,
-    pointwise_add_one_stability,
+    pointwise_insert_one_stability,
     pointwise_replace_one_stability,
     binary_loss,
 )
@@ -212,17 +212,24 @@ def diagnose_sample(
         ins_max = -1
     else:
         ins_max = 0
-        for new_idx in range(m):
-            for new_label in (0, 1):
-                for q_idx in range(m):
-                    for q_label in (0, 1):
-                        try:
-                            val = pointwise_add_one_stability(
-                                sample, new_idx, new_label, q_idx, q_label, k
-                            )
-                            ins_max = max(ins_max, val)
-                        except (ValueError, IndexError):
-                            pass
+        for insert_position in range(n + 1):
+            for new_idx in range(m):
+                for new_label in (0, 1):
+                    for q_idx in range(m):
+                        for q_label in (0, 1):
+                            try:
+                                val = pointwise_insert_one_stability(
+                                    sample,
+                                    insert_position,
+                                    new_idx,
+                                    new_label,
+                                    q_idx,
+                                    q_label,
+                                    k,
+                                )
+                                ins_max = max(ins_max, val)
+                            except (ValueError, IndexError):
+                                pass
 
     # --- Replace-one max ---
     if compute_all_replacements:

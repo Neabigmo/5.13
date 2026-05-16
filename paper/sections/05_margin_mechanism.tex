@@ -74,6 +74,15 @@ replacement at a designated query changes one vote from $-1$ to $+1$,
 increasing the margin by $2$ and crossing the threshold.  This is the unifying
 mechanism behind all constructions in \Cref{sec:minimal-1nn,sec:odd-k-separation,sec:even-k-separation}.
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.86\linewidth]{outputs/figures/fig2_margin_crossing.pdf}
+    \caption{Replacement instability as a margin-crossing event.  The odd-$k$
+    construction moves the signed margin from $-1$ to $+1$; the even-$k$
+    construction moves it from the deterministic tie threshold $0$ to $+2$.}
+    \label{fig:margin-crossing}
+\end{figure}
+
 These mechanisms are especially sensitive in the presence of duplicate
 occurrences and equal-distance contenders, because the top-$k$ neighborhood is
 then controlled by the deterministic tie-breaking convention rather than by

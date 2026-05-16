@@ -70,7 +70,7 @@ def build_stability_notions_table(output_dir: Path) -> None:
     rows = [
         ["delete-one", "remove one occurrence", "arbitrary query-label pair", "indices and queries", "no", "uniform and pointwise perturbation analysis"],
         ["replace-one", "swap one occurrence for adversarial labeled point", "arbitrary query-label pair", "indices, replacements, queries", "no", "strong local perturbation control"],
-        ["add-one", "append one occurrence", "arbitrary query-label pair", "added points and queries", "no", "decomposition of replace-one"],
+        ["insert-one", "insert one occurrence at arbitrary position", "arbitrary query-label pair", "positions, added points, queries", "no", "decomposition of replace-one"],
         ["LOO", "delete one occurrence", "that deleted occurrence", "delete index only", "no", "cross-validation style local stability"],
         ["uniform stability", "usually replace-one in classical literature", "fresh test point or worst-case query", "all samples", "often yes", "generalization bounds"],
     ]
@@ -81,6 +81,50 @@ def build_stability_notions_table(output_dir: Path) -> None:
         caption="Comparison of perturbation notions used in this paper and in the surrounding stability literature.",
         label="tab:stability-notions",
         note="Computational witness sections use fixed-sample worst-case indicators, not distributional expected stability.",
+    )
+
+
+def build_stability_hierarchy_table(output_dir: Path) -> None:
+    columns = ["Claim", "Status", "Evidence in manuscript", "Scope"]
+    rows = [
+        [
+            "uniform delete-one + uniform insert-one => uniform replace-one",
+            "proved",
+            "Proposition 4.1",
+            "bounded loss, ordered samples, all insertion positions",
+        ],
+        [
+            "pointwise delete-one at all queries => LOO",
+            "definition-level implication",
+            "Section 9",
+            "same sample and deterministic rule",
+        ],
+        [
+            "pointwise LOO does not imply pointwise replace-one",
+            "proved by witnesses",
+            "Theorems 7.1 and 8.1 plus the 1-NN witness",
+            "odd k; even k under the stated tie-breaking rule",
+        ],
+        [
+            "worst-case replace-one => expected replace-one",
+            "definition-level implication",
+            "Section 9",
+            "when the same loss and perturbation distribution are used",
+        ],
+        [
+            "expected replace-one => worst-case replace-one",
+            "false in general",
+            "standard expectation/supremum separation",
+            "requires no k-NN-specific theorem",
+        ],
+    ]
+    write_table(
+        output_dir / "stability_hierarchy.tex",
+        columns,
+        rows,
+        caption="Audit table for stability relationships used in the paper.",
+        label="tab:stability-hierarchy",
+        note="Only claims backed by definitions, named results, or explicit finite witnesses are listed.",
     )
 
 
@@ -206,16 +250,28 @@ def build_related_work_map(output_dir: Path, lit_table_md: str) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate LaTeX tables for the paper draft.")
     parser.add_argument("--output_dir", type=Path, default=ROOT / "outputs" / "tables")
+    parser.add_argument("--witness_dir", type=Path, default=ROOT / "outputs" / "witnesses")
+    parser.add_argument(
+        "--reproducibility_md",
+        type=Path,
+        default=ROOT / "outputs" / "REPRODUCIBILITY.md",
+    )
+    parser.add_argument(
+        "--lit_table",
+        type=Path,
+        default=ROOT / "docs" / "literature" / "LIT_TABLE.md",
+    )
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    tie_free_payload = load_json(ROOT / "outputs" / "witnesses" / "1nn_tie_free_witnesses.json")
-    gadget_payload = load_json(ROOT / "outputs" / "witnesses" / "k_gadget_candidates.json")
-    certificate_payload = load_json(ROOT / "outputs" / "witnesses" / "1nn_minimality_certificate.json")
-    reproducibility_md = (ROOT / "outputs" / "REPRODUCIBILITY.md").read_text(encoding="utf-8")
-    lit_table_md = (ROOT / "docs" / "literature" / "LIT_TABLE.md").read_text(encoding="utf-8")
+    tie_free_payload = load_json(args.witness_dir / "1nn_tie_free_witnesses.json")
+    gadget_payload = load_json(args.witness_dir / "k_gadget_candidates.json")
+    certificate_payload = load_json(args.witness_dir / "1nn_minimality_certificate.json")
+    reproducibility_md = args.reproducibility_md.read_text(encoding="utf-8")
+    lit_table_md = args.lit_table.read_text(encoding="utf-8")
 
     build_stability_notions_table(args.output_dir)
+    build_stability_hierarchy_table(args.output_dir)
     build_minimal_witnesses_table(args.output_dir, tie_free_payload)
     build_k_gadget_candidates_table(args.output_dir, gadget_payload)
     build_certificate_summary_table(args.output_dir, certificate_payload)

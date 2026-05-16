@@ -3,11 +3,11 @@
 Implements the frozen stability notions from:
 docs/project-control/02_DEFINITIONS_SPEC.md
 
-This module provides pointwise and uniform stability indicators for the
-deterministic k-NN classifier under sample perturbations:
+This module provides pointwise and fixed-sample worst-case stability
+indicators for the deterministic k-NN classifier under sample perturbations:
 - Delete-one (Δ_del)
+- Insert-one (Δ_ins)
 - Replace-one (Δ_rep)
-- Add-one (Δ_add)
 - Leave-one-out / CVloo (Δ_loo)
 
 Computational limitations:
@@ -24,6 +24,8 @@ Implementation note:
 """
 
 from __future__ import annotations
+
+import warnings
 
 import numpy as np
 
@@ -151,12 +153,68 @@ def replace_one_sample(
     )
 
 
+def insert_one_sample(
+    sample: LabeledSample,
+    insert_position: int,
+    new_point_idx: int,
+    new_label: int,
+) -> LabeledSample:
+    """Create sample S⊕_j z by inserting z=(x', y') at a given position.
+
+    Parameters
+    ----------
+    sample : LabeledSample
+        The original ordered sample S.
+    insert_position : int
+        Zero-based insertion position. Must satisfy 0 <= insert_position <= sample.n.
+    new_point_idx : int
+        Index of the new point x' in the metric space.
+    new_label : int
+        The new label y' (must be 0 or 1).
+
+    Returns
+    -------
+    LabeledSample
+        The sample with z inserted at the requested position.
+    """
+    if insert_position < 0 or insert_position > sample.n:
+        raise ValueError(
+            f"insert_position {insert_position} out of bounds for sample of size {sample.n}"
+        )
+
+    if new_point_idx < 0 or new_point_idx >= sample.metric.n:
+        raise ValueError(
+            f"new_point_idx {new_point_idx} out of bounds for metric space "
+            f"of size {sample.metric.n}"
+        )
+
+    if new_label not in (0, 1):
+        raise ValueError(f"new_label must be 0 or 1, got {new_label}")
+
+    new_points = (
+        sample.point_indices[:insert_position]
+        + (new_point_idx,)
+        + sample.point_indices[insert_position:]
+    )
+    new_labels = (
+        sample.labels[:insert_position]
+        + (new_label,)
+        + sample.labels[insert_position:]
+    )
+
+    return LabeledSample(
+        metric=sample.metric,
+        point_indices=new_points,
+        labels=new_labels,
+    )
+
+
 def add_one_sample(
     sample: LabeledSample,
     new_point_idx: int,
     new_label: int,
 ) -> LabeledSample:
-    """Create sample S⊕z by appending z=(x', y') at the end.
+    """Compatibility wrapper for append-only insertion at the end.
 
     Parameters
     ----------
@@ -172,25 +230,13 @@ def add_one_sample(
     LabeledSample
         The sample with z appended at the end.
     """
-    if new_point_idx < 0 or new_point_idx >= sample.metric.n:
-        raise ValueError(
-            f"new_point_idx {new_point_idx} out of bounds for metric space "
-            f"of size {sample.metric.n}"
-        )
-
-    if new_label not in (0, 1):
-        raise ValueError(
-            f"new_label must be 0 or 1, got {new_label}"
-        )
-
-    new_points = sample.point_indices + (new_point_idx,)
-    new_labels = sample.labels + (new_label,)
-
-    return LabeledSample(
-        metric=sample.metric,
-        point_indices=new_points,
-        labels=new_labels,
+    warnings.warn(
+        "add_one_sample is an append-only compatibility helper. "
+        "Use insert_one_sample for paper-level insert-one semantics.",
+        DeprecationWarning,
+        stacklevel=2,
     )
+    return insert_one_sample(sample, sample.n, new_point_idx, new_label)
 
 
 def pointwise_delete_one_stability(
@@ -338,22 +384,25 @@ def pointwise_replace_one_stability(
     return abs(loss_original - loss_replaced)
 
 
-def pointwise_add_one_stability(
+def pointwise_insert_one_stability(
     sample: LabeledSample,
+    insert_position: int,
     new_point_idx: int,
     new_label: int,
     query_point_idx: int,
     query_label: int,
     k: int,
 ) -> int:
-    """Pointwise add-one stability indicator Δ_add(S, z, x, y).
+    """Pointwise insert-one stability indicator Δ_ins(S, j, z, x, y).
 
-    Computes |ℓ(h_S^{(k)}, (x, y)) - ℓ(h_{S⊕z}^{(k)}, (x, y))|
+    Computes |ℓ(h_S^{(k)}, (x, y)) - ℓ(h_{S⊕_j z}^{(k)}, (x, y))|
 
     Parameters
     ----------
     sample : LabeledSample
         The original ordered sample S.
+    insert_position : int
+        Zero-based insertion position.
     new_point_idx : int
         Index of the point x' to add in the metric space.
     new_label : int
@@ -387,14 +436,44 @@ def pointwise_add_one_stability(
     pred_original = predict_knn(sample, query_point_idx, k)
     loss_original = binary_loss(pred_original, query_label)
 
-    # Sample with added point
-    sample_added = add_one_sample(sample, new_point_idx, new_label)
+    sample_inserted = insert_one_sample(
+        sample, insert_position, new_point_idx, new_label
+    )
 
-    # Prediction and loss on added sample
-    pred_added = predict_knn(sample_added, query_point_idx, k)
-    loss_added = binary_loss(pred_added, query_label)
+    pred_inserted = predict_knn(sample_inserted, query_point_idx, k)
+    loss_inserted = binary_loss(pred_inserted, query_label)
 
-    return abs(loss_original - loss_added)
+    return abs(loss_original - loss_inserted)
+
+
+def pointwise_add_one_stability(
+    sample: LabeledSample,
+    new_point_idx: int,
+    new_label: int,
+    query_point_idx: int,
+    query_label: int,
+    k: int,
+) -> int:
+    """Compatibility wrapper for append-only add-one stability.
+
+    This keeps the legacy append-only helper available, but paper-facing
+    semantics must use pointwise_insert_one_stability.
+    """
+    warnings.warn(
+        "pointwise_add_one_stability is append-only compatibility behavior. "
+        "Use pointwise_insert_one_stability for paper-level insert-one semantics.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return pointwise_insert_one_stability(
+        sample,
+        sample.n,
+        new_point_idx,
+        new_label,
+        query_point_idx,
+        query_label,
+        k,
+    )
 
 
 def pointwise_loo_stability(
@@ -567,47 +646,95 @@ def uniform_replace_one_stability(
     return (max_indicator, best_new_point, best_new_label, best_query)
 
 
+def fixed_sample_max_insert_one_stability(
+    sample: LabeledSample,
+    k: int,
+) -> tuple[int, int, int, int, tuple[int, int]]:
+    """Fixed-sample brute-force insert-one maximum over all positions and queries.
+
+    For a fixed ordered sample ``S``, compute the maximum of
+    ``Δ_ins(S, j, z, x, y)`` over all insertion positions ``j``, all
+    labeled insertions ``z in X x {0,1}``, and all evaluation pairs ``(x, y)``.
+
+    Parameters
+    ----------
+    sample : LabeledSample
+        The ordered sample S.
+    k : int
+        Number of nearest neighbors.
+
+    Returns
+    -------
+    tuple[int, int, int, int, tuple[int, int]]
+        A tuple containing:
+        - The maximum indicator value for this fixed sample
+        - The insertion position achieving the maximum
+        - The new point index achieving the maximum
+        - The new label achieving the maximum
+        - A tuple (query_point_idx, query_label) achieving the maximum
+    """
+    max_indicator = 0
+    best_insert_position = 0
+    best_new_point = 0
+    best_new_label = 0
+    best_query = (0, 0)
+
+    for insert_position in range(sample.n + 1):
+        for new_point_idx in range(sample.metric.n):
+            for new_label in (0, 1):
+                for query_point_idx in range(sample.metric.n):
+                    for query_label in (0, 1):
+                        indicator = pointwise_insert_one_stability(
+                            sample,
+                            insert_position,
+                            new_point_idx,
+                            new_label,
+                            query_point_idx,
+                            query_label,
+                            k,
+                        )
+                        if indicator > max_indicator:
+                            max_indicator = indicator
+                            best_insert_position = insert_position
+                            best_new_point = new_point_idx
+                            best_new_label = new_label
+                            best_query = (query_point_idx, query_label)
+
+    return (
+        max_indicator,
+        best_insert_position,
+        best_new_point,
+        best_new_label,
+        best_query,
+    )
+
+
 def uniform_add_one_stability(
     sample: LabeledSample,
     new_point_idx: int,
     new_label: int,
     k: int,
 ) -> tuple[int, tuple[int, int]]:
-    """Fixed-sample brute-force add-one maximum for one added point.
-
-    For a fixed ordered sample ``S`` and added labeled point ``z``, compute
-    the maximum of ``Δ_add(S, z, x, y)`` over all evaluation pairs ``(x, y)``.
-
-    Parameters
-    ----------
-    sample : LabeledSample
-        The ordered sample S.
-    new_point_idx : int
-        The point index of the added point z.
-    new_label : int
-        The label of the added point z.
-    k : int
-        Number of nearest neighbors.
-
-    Returns
-    -------
-    tuple[int, tuple[int, int]]
-        A tuple containing:
-        - The maximum indicator value for this fixed sample and added point
-        - A tuple (query_point_idx, query_label) achieving the maximum
-
-    Warning
-    -------
-    Complexity is O(|X|) for fixed z.
-    """
+    """Compatibility wrapper for append-only add-one fixed-sample maxima."""
+    warnings.warn(
+        "uniform_add_one_stability is append-only compatibility behavior. "
+        "Use fixed_sample_max_insert_one_stability for paper-level insert-one semantics.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     max_indicator = 0
     best_query = (0, 0)
 
     for query_point_idx in range(sample.metric.n):
         for query_label in (0, 1):
-            indicator = pointwise_add_one_stability(
-                sample, new_point_idx, new_label,
-                query_point_idx, query_label, k
+            indicator = pointwise_insert_one_stability(
+                sample,
+                sample.n,
+                new_point_idx,
+                new_label,
+                query_point_idx,
+                query_label,
+                k,
             )
             if indicator > max_indicator:
                 max_indicator = indicator

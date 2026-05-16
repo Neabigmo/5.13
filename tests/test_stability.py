@@ -1,6 +1,6 @@
 """Tests for stability indicators.
 
-Tests distinguish delete-one, replace-one, add-one, and LOO stability.
+Tests distinguish delete-one, insert-one, replace-one, and LOO stability.
 """
 
 import numpy as np
@@ -12,13 +12,16 @@ from knn_stability.stability import (
     binary_loss,
     delete_one_sample,
     replace_one_sample,
+    insert_one_sample,
     add_one_sample,
     pointwise_delete_one_stability,
     pointwise_replace_one_stability,
+    pointwise_insert_one_stability,
     pointwise_add_one_stability,
     pointwise_loo_stability,
     uniform_delete_one_stability,
     uniform_replace_one_stability,
+    fixed_sample_max_insert_one_stability,
     uniform_add_one_stability,
     uniform_loo_stability,
 )
@@ -104,7 +107,7 @@ class TestReplaceOneSample:
             replace_one_sample(sample, 0, new_point_idx=0, new_label=2)
 
 
-class TestAddOneSample:
+class TestInsertOneSample:
     @pytest.fixture
     def line_metric(self):
         return FiniteMetricSpace(
@@ -112,18 +115,32 @@ class TestAddOneSample:
             distances=[[0.0, 1.0, 2.0], [1.0, 0.0, 1.0], [2.0, 1.0, 0.0]],
         )
 
-    def test_add_at_end(self, line_metric):
-        sample = LabeledSample.from_arrays([0, 1], [0, 1], line_metric)
-        added = add_one_sample(sample, new_point_idx=2, new_label=0)
-        assert added.point_indices == (0, 1, 2)
-        assert added.labels == (0, 1, 0)
-        assert len(added) == 3
+    def test_insert_first_changes_order(self, line_metric):
+        sample = LabeledSample.from_arrays([1, 2], [1, 0], line_metric)
+        inserted = insert_one_sample(sample, insert_position=0, new_point_idx=0, new_label=0)
+        assert inserted.point_indices == (0, 1, 2)
+        assert inserted.labels == (0, 1, 0)
 
-    def test_add_duplicate_allowed(self, line_metric):
+    def test_insert_last_matches_append(self, line_metric):
         sample = LabeledSample.from_arrays([0, 1], [0, 1], line_metric)
-        added = add_one_sample(sample, new_point_idx=0, new_label=1)
-        assert added.point_indices == (0, 1, 0)
-        assert added.labels == (0, 1, 1)
+        inserted = insert_one_sample(sample, insert_position=sample.n, new_point_idx=2, new_label=0)
+        added = add_one_sample(sample, new_point_idx=2, new_label=0)
+        assert inserted.point_indices == added.point_indices
+        assert inserted.labels == added.labels
+        assert len(inserted) == 3
+
+    def test_insert_duplicate_allowed(self, line_metric):
+        sample = LabeledSample.from_arrays([0, 1], [0, 1], line_metric)
+        inserted = insert_one_sample(sample, insert_position=1, new_point_idx=0, new_label=1)
+        assert inserted.point_indices == (0, 0, 1)
+        assert inserted.labels == (0, 1, 1)
+
+    def test_insert_position_valid_range(self, line_metric):
+        sample = LabeledSample.from_arrays([0, 1], [0, 1], line_metric)
+        with pytest.raises(ValueError, match='out of bounds'):
+            insert_one_sample(sample, insert_position=-1, new_point_idx=0, new_label=0)
+        with pytest.raises(ValueError, match='out of bounds'):
+            insert_one_sample(sample, insert_position=3, new_point_idx=0, new_label=0)
 
 
 class TestPointwiseDeleteOneStability:
@@ -190,7 +207,72 @@ class TestPointwiseReplaceOneStability:
         assert replace_indicator == 1
 
 
-class TestPointwiseAddOneStability:
+class TestPointwiseInsertOneStability:
+    @pytest.fixture
+    def line_metric(self):
+        return FiniteMetricSpace(
+            points=['a', 'b', 'c'],
+            distances=[[0.0, 1.0, 2.0], [1.0, 0.0, 1.0], [2.0, 1.0, 0.0]],
+        )
+
+    def test_insert_same_point(self, line_metric):
+        sample = LabeledSample.from_arrays([0, 1, 2], [0, 1, 0], line_metric)
+        indicator = pointwise_insert_one_stability(
+            sample, insert_position=sample.n, new_point_idx=0, new_label=0,
+            query_point_idx=0, query_label=0, k=1
+        )
+        assert indicator == 0
+
+    def test_replace_equals_delete_then_insert_at_deleted_position(self, line_metric):
+        sample = LabeledSample.from_arrays([0, 1, 2], [0, 1, 0], line_metric)
+        delete_index = 1
+        replacement_point = 2
+        replacement_label = 0
+        query_point_idx = 0
+        query_label = 0
+
+        deleted = delete_one_sample(sample, delete_index)
+        rebuilt = insert_one_sample(
+            deleted,
+            insert_position=delete_index,
+            new_point_idx=replacement_point,
+            new_label=replacement_label,
+        )
+        replaced = replace_one_sample(
+            sample,
+            replace_index=delete_index,
+            new_point_idx=replacement_point,
+            new_label=replacement_label,
+        )
+
+        assert rebuilt.point_indices == replaced.point_indices
+        assert rebuilt.labels == replaced.labels
+
+        replace_indicator = pointwise_replace_one_stability(
+            sample,
+            replace_index=delete_index,
+            new_point_idx=replacement_point,
+            new_label=replacement_label,
+            query_point_idx=query_point_idx,
+            query_label=query_label,
+            k=1,
+        )
+        insert_indicator = pointwise_insert_one_stability(
+            deleted,
+            insert_position=delete_index,
+            new_point_idx=replacement_point,
+            new_label=replacement_label,
+            query_point_idx=query_point_idx,
+            query_label=query_label,
+            k=1,
+        )
+        pred_sample = predict_knn(sample, query_point_idx, 1)
+        pred_deleted = predict_knn(deleted, query_point_idx, 1)
+        delete_loss_gap = abs(binary_loss(pred_sample, query_label) - binary_loss(pred_deleted, query_label))
+        assert replace_indicator <= delete_loss_gap + insert_indicator
+
+
+class TestCompatibilityAddOneWrapper:
     @pytest.fixture
     def line_metric(self):
         return FiniteMetricSpace(
@@ -266,6 +348,15 @@ class TestUniformStabilityHelpers:
         sample = LabeledSample.from_arrays([0], [0], small_metric)
         max_ind, query = uniform_add_one_stability(sample, 1, 1, k=1)
         assert isinstance(max_ind, (int, np.integer))
+        assert isinstance(query, tuple) and len(query) == 2
+
+    def test_fixed_sample_max_insert_one(self, small_metric):
+        sample = LabeledSample.from_arrays([0], [0], small_metric)
+        max_ind, insert_pos, pt, lbl, query = fixed_sample_max_insert_one_stability(sample, k=1)
+        assert isinstance(max_ind, (int, np.integer))
+        assert 0 <= insert_pos <= sample.n
+        assert 0 <= pt < sample.metric.n
+        assert lbl in (0, 1)
         assert isinstance(query, tuple) and len(query) == 2
 
     def test_uniform_loo(self, small_metric):

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from experiments.certify_minimality import build_certificate
-from experiments.generate_witness_figures import layout_by_degree
+from experiments.witness_layout import layout_by_degree
 from experiments.search_minimal_1nn import build_metadata, search_witnesses
 from experiments.search_k_gadgets import (
     build_metadata as build_k_gadget_metadata,
@@ -85,6 +85,13 @@ from experiments.search_tie_free import (
 )
 from knn_stability.graph_metrics import adjacency_to_graph_metric
 from knn_stability.knn import LabeledSample
+from knn_stability.diagnostic import compute_signed_margin
+from knn_stability.stability import (
+    pointwise_loo_stability,
+    replace_one_sample,
+    uniform_loo_stability,
+    uniform_replace_one_stability,
+)
 
 
 def test_adjacency_from_dict() -> None:
@@ -258,6 +265,76 @@ def test_filter_tie_free_witnesses() -> None:
     assert stats["tie_free_witnesses"] == 1
     assert stats["rejected_tie_witnesses"] == 1
     assert len(tie_free_witnesses) == 1
+
+
+def _two_point_metric():
+    return adjacency_to_graph_metric({0: {1}, 1: {0}})
+
+
+def _odd_k_sample(m: int) -> LabeledSample:
+    metric = _two_point_metric()
+    point_indices = (0,) * (m + 1) + (0,) * m + (1,) * m
+    labels = (0,) * (m + 1) + (1,) * m + (0,) * m
+    return LabeledSample(metric=metric, point_indices=point_indices, labels=labels)
+
+
+def _even_k_sample(m: int) -> LabeledSample:
+    metric = _two_point_metric()
+    point_indices = (0,) * m + (0,) * m + (1,) * m
+    labels = (0,) * m + (1,) * m + (0,) * m
+    return LabeledSample(metric=metric, point_indices=point_indices, labels=labels)
+
+
+def test_k1_witness_family_has_loo_zero_and_replace_one_one() -> None:
+    sample = LabeledSample(metric=_two_point_metric(), point_indices=(0, 1), labels=(0, 0))
+
+    loo_max, _ = uniform_loo_stability(sample, k=1)
+    rep_max, _, _, _ = uniform_replace_one_stability(sample, 0, k=1)
+
+    assert loo_max == 0
+    assert rep_max == 1
+
+
+def test_odd_k_witness_family_margin_crosses_from_minus_one_to_plus_one() -> None:
+    for m in (1, 2, 3):
+        sample = _odd_k_sample(m)
+        k = 2 * m + 1
+
+        assert compute_signed_margin(sample, query_point_idx=0, k=k) == -1
+
+        for delete_index in range(sample.n):
+            assert pointwise_loo_stability(sample, delete_index, k=k) == 0
+        loo_max, _ = uniform_loo_stability(sample, k=k)
+        assert loo_max == 0
+
+        replaced = replace_one_sample(sample, replace_index=0, new_point_idx=0, new_label=1)
+        assert compute_signed_margin(replaced, query_point_idx=0, k=k) == 1
+
+        rep_max, rep_point, rep_label, rep_query = uniform_replace_one_stability(sample, 0, k=k)
+        assert rep_max == 1
+        assert (rep_point, rep_label) == (0, 1)
+        assert rep_query == (0, 0)
+
+
+def test_even_k_witness_family_margin_crosses_from_zero_to_plus_two() -> None:
+    for m in (1, 2, 3):
+        sample = _even_k_sample(m)
+        k = 2 * m
+
+        assert compute_signed_margin(sample, query_point_idx=0, k=k) == 0
+
+        for delete_index in range(sample.n):
+            assert pointwise_loo_stability(sample, delete_index, k=k) == 0
+        loo_max, _ = uniform_loo_stability(sample, k=k)
+        assert loo_max == 0
+
+        replaced = replace_one_sample(sample, replace_index=0, new_point_idx=0, new_label=1)
+        assert compute_signed_margin(replaced, query_point_idx=0, k=k) == 2
+
+        rep_max, rep_point, rep_label, rep_query = uniform_replace_one_stability(sample, 0, k=k)
+        assert rep_max == 1
+        assert (rep_point, rep_label) == (0, 1)
+        assert rep_query == (0, 0)
 
 
 def test_build_minimality_certificate() -> None:
